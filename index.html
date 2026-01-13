@@ -4,37 +4,66 @@
   <meta charset="UTF-8">
   <title>LINE Login Test</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+  <script>var vConsole = new window.VConsole();</script>
 </head>
 <body>
   <h2>LINEログインテスト</h2>
-  <div id="status">初期化中...</div>
+  <div id="status" style="background: #f0f0f0; padding: 10px; border: 1px solid #ccc;">初期化開始を待機中...</div>
   
   <div id="profile" style="display:none">
-    <p>ログイン成功！</p>
+    <p style="color: green; font-weight: bold;">ログイン成功！</p>
     <p><strong>名前:</strong> <span id="name"></span></p>
     <p><strong>User ID:</strong> <code id="uid"></code></p>
   </div>
 
   <script>
     async function main() {
+      const statusEl = document.getElementById('status');
+      
       try {
+        statusEl.innerText = "1: main関数が実行されました";
+        console.log("Step 1: main started");
+
+        // LIFF IDの確認
+        const myLiffId = "2008798613-Y4q9F6mQ";
+        statusEl.innerText = "2: liff.initを実行します... (ID: " + myLiffId + ")";
+        console.log("Step 2: liff.init start");
+
         // LIFFの初期化
-        await liff.init({ liffId: "2008798613-9nsrNC2x" }); 
+        await liff.init({ liffId: myLiffId }); 
         
+        statusEl.innerText = "3: liff.initに成功しました";
+        console.log("Step 3: liff.init success");
+
         if (!liff.isLoggedIn()) {
+          statusEl.innerText = "4: ログインしていません。ログイン画面へ移動します...";
+          console.log("Step 4: Not logged in");
           liff.login();
         } else {
+          statusEl.innerText = "5: ログイン済み。プロフィールを取得中...";
+          console.log("Step 5: Logged in");
+          
           const profile = await liff.getProfile();
+          statusEl.innerText = "6: すべての処理が完了しました";
+          console.log("Step 6: Profile fetched", profile);
+
           document.getElementById('status').style.display = 'none';
           document.getElementById('profile').style.display = 'block';
           document.getElementById('name').innerText = profile.displayName;
           document.getElementById('uid').innerText = profile.userId;
         }
       } catch (err) {
-        document.getElementById('status').innerText = "エラー: " + err;
+        statusEl.innerText = "❌ エラー発生: " + err;
+        statusEl.style.color = "red";
+        console.error("LIFF Error:", err);
       }
     }
-    main();
+
+    // 画面が完全に読み込まれてから実行
+    window.onload = function() {
+      main();
+    };
   </script>
 </body>
 </html>
