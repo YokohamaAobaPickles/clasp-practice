@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>LINE Login Test</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <h2>LINEログインテスト</h2>
+  <div id="status">初期化中...</div>
+  
+  <div id="profile" style="display:none">
+    <p>ログイン成功！</p>
+    <p><strong>名前:</strong> <span id="name"></span></p>
+    <p><strong>User ID:</strong> <code id="uid"></code></p>
+  </div>
+
+  <script>
+    async function main() {
+      try {
+        // LIFFの初期化
+        await liff.init({ liffId: "2008798613-9nsrNC2x" }); 
+        
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const profile = await liff.getProfile();
+          document.getElementById('status').style.display = 'none';
+          document.getElementById('profile').style.display = 'block';
+          document.getElementById('name').innerText = profile.displayName;
+          document.getElementById('uid').innerText = profile.userId;
+        }
+      } catch (err) {
+        document.getElementById('status').innerText = "エラー: " + err;
+      }
+    }
+    main();
+  </script>
+</body>
+</html>
