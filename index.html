@@ -24,6 +24,7 @@
       try {
         statusEl.innerText = "1: main関数が実行されました";
         console.log("Step 1: main started");
+        <button id="send-btn" style="padding: 10px; margin-top: 20px;">トークに送信する</button>
 
         // LIFF IDの確認
         const myLiffId = "2008798613-9nsrNC2x";
@@ -45,6 +46,25 @@
           console.log("Step 5: Logged in");
           
           const profile = await liff.getProfile();
+          // プロフィール取得後の処理の中に追記
+          const sendBtn = document.getElementById('send-btn');
+
+          sendBtn.addEventListener('click', () => {
+            liff.sendMessages([
+              {
+                type: 'text',
+                text: `こんにちは！${profile.displayName}です。UserIDは ${profile.userId} です。`
+              }
+            ])
+            .then(() => {
+              console.log('メッセージを送信しました');
+              liff.closeWindow(); // 送信後に自動でLIFFを閉じる（便利です）
+            })
+            .catch((err) => {
+              console.error('送信エラー:', err);
+              alert('エラーが発生しました: ' + err);
+            });
+          });
           statusEl.innerText = "6: すべての処理が完了しました";
           console.log("Step 6: Profile fetched", profile);
 
