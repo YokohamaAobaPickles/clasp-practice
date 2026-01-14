@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LINE Login Test</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
@@ -9,81 +10,90 @@
 </head>
 <body>
   <h2>---LINEログインテスト---</h2>
-  <div id="status" style="background: #f0f0f0; padding: 10px; border: 1px solid #ccc;">初期化開始を待機中...</div>
+  
+  <div id="status" style="background: #f0f0f0; padding: 10px; border: 1px solid #ccc; margin-bottom: 10px;">
+    初期化開始を待機中...
+  </div>
   
   <div id="profile" style="display:none">
     <p style="color: green; font-weight: bold;">ログイン成功！</p>
     <p><strong>名前:</strong> <span id="name"></span></p>
     <p><strong>User ID:</strong> <code id="uid"></code></p>
+    
+    <button id="send-btn" style="padding: 15px; margin-top: 20px; background-color: #00B900; color: white; border: none; border-radius: 5px; width: 100%;">
+      トークに送信する
+    </button>
   </div>
 
   <script>
     async function main() {
       const statusEl = document.getElementById('status');
+      const myLiffId = "2008798613-9nsrNC2x"; // LIFF ID
       
       try {
-        statusEl.innerText = "1: main関数が実行されました";
         console.log("Step 1: main started");
-        <button id="send-btn" style="padding: 10px; margin-top: 20px;">トークに送信する</button>
+        statusEl.innerText = "1: main関数が実行されました";
 
-        // LIFF IDの確認
-        const myLiffId = "2008798613-9nsrNC2x";
-        statusEl.innerText = "2: liff.initを実行します... (ID: " + myLiffId + ")";
-        console.log("Step 2: liff.init start");
-
-        // LIFFの初期化
+        // 1. LIFFの初期化
+        console.log("Step 2: liff.init start with ID:", myLiffId);
+        statusEl.innerText = "2: liff.initを実行中...";
+        
         await liff.init({ liffId: myLiffId }); 
         
-        statusEl.innerText = "3: liff.initに成功しました";
         console.log("Step 3: liff.init success");
+        statusEl.innerText = "3: liff.initに成功しました";
 
+        // 2. ログインチェック
         if (!liff.isLoggedIn()) {
-          statusEl.innerText = "4: ログインしていません。ログイン画面へ移動します...";
           console.log("Step 4: Not logged in");
+          statusEl.innerText = "4: ログインしていません。ログイン画面へ移動します...";
           liff.login();
-        } else {
-          statusEl.innerText = "5: ログイン済み。プロフィールを取得中...";
-          console.log("Step 5: Logged in");
-          
-          const profile = await liff.getProfile();
-          // プロフィール取得後の処理の中に追記
-          const sendBtn = document.getElementById('send-btn');
-
-          sendBtn.addEventListener('click', () => {
-            liff.sendMessages([
-              {
-                type: 'text',
-                text: `こんにちは！${profile.displayName}です。UserIDは ${profile.userId} です。`
-              }
-            ])
-            .then(() => {
-              console.log('メッセージを送信しました');
-              liff.closeWindow(); // 送信後に自動でLIFFを閉じる（便利です）
-            })
-            .catch((err) => {
-              console.error('送信エラー:', err);
-              alert('エラーが発生しました: ' + err);
-            });
-          });
-          statusEl.innerText = "6: すべての処理が完了しました";
-          console.log("Step 6: Profile fetched", profile);
-
-          document.getElementById('status').style.display = 'none';
-          document.getElementById('profile').style.display = 'block';
-          document.getElementById('name').innerText = profile.displayName;
-          document.getElementById('uid').innerText = profile.userId;
+          return; // ログイン画面へリダイレクトされるため処理終了
         }
+
+        // 3. プロフィール取得
+        console.log("Step 5: Logged in, fetching profile...");
+        statusEl.innerText = "5: プロフィールを取得中...";
+        const profile = await liff.getProfile();
+        
+        // 4. 画面表示の切り替え
+        document.getElementById('name').innerText = profile.displayName;
+        document.getElementById('uid').innerText = profile.userId;
+        statusEl.style.display = 'none';
+        document.getElementById('profile').style.display = 'block';
+        console.log("Step 6: Display updated", profile);
+
+        // 5. メッセージ送信ボタンのイベント設定
+        const sendBtn = document.getElementById('send-btn');
+        sendBtn.onclick = function() {
+          console.log("Button clicked. Sending message...");
+          
+          liff.sendMessages([
+            {
+              type: 'text',
+              text: `こんにちは！${profile.displayName}です。UserIDは ${profile.userId} です。`
+            }
+          ])
+          .then(() => {
+            console.log('Message sent successfully');
+            alert('メッセージを送信しました。ウィンドウを閉じます。');
+            liff.closeWindow();
+          })
+          .catch((err) => {
+            console.error('Send message error:', err);
+            alert('送信失敗: ' + err.message);
+          });
+        };
+
       } catch (err) {
-        statusEl.innerText = "❌ エラー発生: " + err;
+        console.error("LIFF Fatal Error:", err);
+        statusEl.innerText = "❌ エラー発生: " + err.message;
         statusEl.style.color = "red";
-        console.error("LIFF Error:", err);
       }
     }
 
-    // 画面が完全に読み込まれてから実行
-    window.onload = function() {
-      main();
-    };
+    // 実行
+    main();
   </script>
 </body>
 </html>
